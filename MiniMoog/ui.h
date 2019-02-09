@@ -17,10 +17,10 @@
 #define SUM_BLOCK_S		190	//start coordinates of plotting the Square waveform
 #define SUM_BLOCK_E		630 //end coordinates of plotting the Square waveform
 #define THICK			2
-#define BLACK           0, 0, 0
-#define WHITE           255, 255, 255
+#define BLACK			0, 0, 0
+#define WHITE			255, 255, 255
 #define PINC			255, 153, 204 
-#define ELECTRIC        0.3, 0.2, 0.6
+#define ELECTRIC		0.3, 0.2, 0.6
 
 
 ALLEGRO_FONT*		font;
