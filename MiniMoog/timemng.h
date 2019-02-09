@@ -10,11 +10,11 @@
 typedef struct timespec tspec;
 
 
-void	time_copy(tspec *td, tspec ts);
+void time_copy(tspec *td, tspec ts);
 
-void	time_add_ms(tspec *t, int ms);
+void time_add_ms(tspec *t, int ms);
 
-int		time_cmp(tspec t1, tspec t2);
+int time_cmp(tspec t1, tspec t2);
 
 
 #endif
