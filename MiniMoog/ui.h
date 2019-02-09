@@ -26,10 +26,10 @@
 ALLEGRO_FONT*		font;
 ALLEGRO_DISPLAY*	display;
 
-ALLEGRO_COLOR c0; 
-ALLEGRO_COLOR c1;  
-ALLEGRO_COLOR c2;  
-ALLEGRO_COLOR c3;
+ALLEGRO_COLOR		c0; 
+ALLEGRO_COLOR		c1;  
+ALLEGRO_COLOR		c2;  
+ALLEGRO_COLOR		c3;
 
 extern struct waves_buffer signal_params;
 
