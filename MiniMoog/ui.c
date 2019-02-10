@@ -28,11 +28,14 @@ TASK allegro_draw(void* arg) {
             log_printf("DEBUG\t\tSTART UI\n");
             log_printf("DEBUG:\t\t Display Deadline Miss:%d\n\n",task_sepcs.dlmiss_display);
         }
-
+        
         Draw_Task_Bounded_Boxes();
+        
         DrawTask_Info();
         
+        pthread_mutex_lock(&mutex);
         PlotWaveforms();
+        pthread_mutex_unlock(&mutex);
         
         Draw_Instructions();
         al_flip_display();    
