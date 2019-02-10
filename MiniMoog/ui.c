@@ -18,6 +18,7 @@ TASK allegro_draw(void* arg) {
 
     display = al_create_display(XDISP, YDISP);  
     font = al_load_font("data/DejaVuSans.ttf", 12, 1);
+    fonts = al_load_font("data/DejaVuSans.ttf", 10, 1);
     
     set_activation(task_sepcs.id_display);
     
@@ -30,7 +31,9 @@ TASK allegro_draw(void* arg) {
 
         Draw_Task_Bounded_Boxes();
         DrawTask_Info();
+        
         PlotWaveforms();
+        
         Draw_Instructions();
         al_flip_display();    
         
@@ -88,6 +91,8 @@ void Draw_Task_Bounded_Boxes(void) {
     al_draw_rectangle(384,  10, 576, 140, c3,THICK);
     al_draw_rectangle(584,  10, 798, 140, c3,THICK);
 
+    al_draw_rectangle(10, 470, 790, 800, c3,THICK);
+
     //BOXES to bound the waves [Sin, Tri, and Square]
     al_draw_filled_rectangle(7, 168, 300, 240, c3);
     al_draw_filled_rectangle(7+293, 168, 300+293, 240, c3);
@@ -103,7 +108,11 @@ void Draw_Task_Bounded_Boxes(void) {
 void PlotWaveforms(void){
 
     unsigned int i;
-
+    //pthread_mutex_lock(&rsrc_lock);
+    //pthread_mutex_lock(&rsrc_lock);
+    //while(rsrc_done <1024) {
+    //    pthread_cond_wait(&rsrc_rw, &rsrc_lock);
+    //} 
     //Plot the SineWave
     for (i = SINE_BLOCK_S; i < SINE_BLOCK_E; i++){
         al_put_blended_pixel(i, 200 + signal_params.sineWave_buf[i] * 20, c1);                
@@ -120,14 +129,31 @@ void PlotWaveforms(void){
     for (i = SUM_BLOCK_S; i < SUM_BLOCK_E; i++){        
         al_draw_pixel(i, 350 + signal_params.sum[i] * 50, c1);  
     } 
-
+    //pthread_mutex_unlock(&rsrc_lock);
 }
 
 /*---------------------------------------------------------------------------------------------------------*/
 void Draw_Instructions(void){
 
-    al_draw_textf(font, c2, 1, 400, 0,"Notes: A");
-    al_draw_textf(font, c3, 10, 500, NULL,"Notes:   A B C D E F G");
-    al_draw_textf(font, c3, 10, 520, NULL,"KEYS:    a s d f g h j");
+    al_draw_textf(fonts,c1, 120, 480, ALLEGRO_ALIGN_LEFT,"SIN    SQUARE    TRIANGLE");  
+
+    al_draw_textf(font, c3, 10, 495, ALLEGRO_ALIGN_LEFT,"--NOTE_A 440.00    A          Q             Z");
+    al_draw_textf(font, c3, 10, 510, ALLEGRO_ALIGN_LEFT,"--NOTE_B 493.88    S          W             X");
+    al_draw_textf(font, c3, 10, 525, ALLEGRO_ALIGN_LEFT,"--NOTE_C 261.63    D          E             C");
+    al_draw_textf(font, c3, 10, 540, ALLEGRO_ALIGN_LEFT,"--NOTE_D 293.66    F          R             V");
+    al_draw_textf(font, c3, 10, 555, ALLEGRO_ALIGN_LEFT,"--NOTE_E 329.63    G          T             B");
+    al_draw_textf(font, c3, 10, 570, ALLEGRO_ALIGN_LEFT,"--NOTE_F 349.23    H          Y             N");
+    al_draw_textf(font, c3, 10, 585, ALLEGRO_ALIGN_LEFT,"--NOTE_G 392.00    J          U             M");
+
+
+    al_draw_textf(fonts,c1, 350, 480, ALLEGRO_ALIGN_LEFT,"---------------SIN    SQUARE    TRIANGLE------------------------------------------------------------");  
+    al_draw_textf(font, c3, 350, 495, ALLEGRO_ALIGN_LEFT,"ON------------[1]     [2]        [3]------------------------------------------------------------------");
+    al_draw_textf(font, c3, 350, 510, ALLEGRO_ALIGN_LEFT,"0FF-----------[7]     [9]        [8]------------------------------------------------------------------");
+
+    al_draw_textf(font, c3, 350, 535, ALLEGRO_ALIGN_LEFT," --------------To toogle the filter press ENTER---------------------------------------------");
+    al_draw_textf(font, c3, 350, 550, ALLEGRO_ALIGN_LEFT," --------------To Mute press SPACE--------------------------------------------------------------");
+    al_draw_textf(font, c3, 350, 565, ALLEGRO_ALIGN_LEFT," --------------Volume + UP--------------------------------------------------------------------------");
+    al_draw_textf(font, c3, 350, 580, ALLEGRO_ALIGN_LEFT," --------------Volume - DOWN-----------------------------------------------------------------------");
+
 
 }
