@@ -3,11 +3,14 @@
 #include "signal_src.h"
 
 
-double  dt = 1.0 / 44100;   //sampling time: 1/48 msec
+
+/*Each Waveform array is used to copy the generated buffers from oscillators*/
 float   waveform1[SAMPLES_PER_BUFFER],
 		waveform2[SAMPLES_PER_BUFFER],
 		waveform3[SAMPLES_PER_BUFFER];
-long    xxx;
+
+/*sampling time: 1/48 msec, 44100 is the default sampling rate of Mixer*/
+double  dt = 1.0 / 44100;
 
 
 /*//////////////////////FIR_BPF///////////////////////////////
@@ -119,18 +122,16 @@ TASK audio_thread(TASK arg){
 		/*Enter the critical Section, reading @sineWave_buf*/
 		pthread_mutex_lock(&Srsrc_mutx);       		
 		/*Do the work.....
-		*Perform Reading from the shared buffer*/ 
-		
+		*Perform Reading from the shared buffer*/ 		
 		memmove(waveform1, signal_params.sineWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
-		
 		//Checking if both arrays are identical, If not recopy again
 		while (memcmp(waveform1, signal_params.sineWave_buf, SAMPLES_PER_BUFFER * sizeof(float)) != 0){
 			memmove(waveform1, signal_params.sineWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
-		}
-		
+		}	
 		/*End the critical Section*/
 		pthread_mutex_unlock(&Srsrc_mutx);
 		
+		/*---------------------------------------------------------------------------------------------------------*/
 
 		pthread_mutex_lock(&Trsrc_mutx);
 		memmove(waveform2, signal_params.triangleWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
@@ -138,8 +139,9 @@ TASK audio_thread(TASK arg){
 		while (memcmp(waveform1, signal_params.sineWave_buf, SAMPLES_PER_BUFFER * sizeof(float)) != 0){
 			memmove(waveform2, signal_params.triangleWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
 		}
-		pthread_mutex_unlock(&Trsrc_mutx);
-			
+		pthread_mutex_unlock(&Trsrc_mutx);			
+		/*---------------------------------------------------------------------------------------------------------*/
+		
 		pthread_mutex_lock(&Rrsrc_mutx);
 		memmove(waveform3, signal_params.squareWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
 		//Checking if arrays are identical, If not recopy again
@@ -147,7 +149,7 @@ TASK audio_thread(TASK arg){
 			memmove(waveform3, signal_params.squareWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
 		}
 		pthread_mutex_unlock(&Rrsrc_mutx);
-			
+		/*---------------------------------------------------------------------------------------------------------*/
 		
 		if (event.type == ALLEGRO_EVENT_AUDIO_STREAM_FRAGMENT ) {
 
@@ -166,6 +168,7 @@ TASK audio_thread(TASK arg){
 			}
 
 		}
+        task_sepcs.dlmiss_audio = deadline_miss(task_sepcs.id_audio);        
 
 		wait_for_period(task_sepcs.id_audio);
 		pthread_barrier_wait(&rsrc_barr);
@@ -201,13 +204,13 @@ TASK audio_thread(TASK arg){
 	task_sepcs.prio_sinWave=get_task_period(arg);
 	set_activation(task_sepcs.id_sinWave);
 	
-	do{
+	while(!TASK_END) {
 
 		w = TWOPI * signal_params.freq_sin;
 		t_sine+= dt * SAMPLES_PER_BUFFER;
 
 		//Enter the critical Section
-		while (pthread_mutex_trylock(&Srsrc_mutx) == 0){              
+		pthread_mutex_lock(&Srsrc_mutx);             
 		/*Do the work.....
 		 *Perform Writing to the buffer*/
 		for (i = 0; i < SAMPLES_PER_BUFFER; ++i) { 
@@ -215,16 +218,15 @@ TASK audio_thread(TASK arg){
 			signal_params.sineWave_buf[i] =sin(w * ti);
 		}
 		pthread_mutex_unlock(&Srsrc_mutx);
-		break;
-		}
-		//Exit the critical Section
-
 		
+		//Exit the critical Section
+        
+        task_sepcs.dlmiss_sinWave = deadline_miss(task_sepcs.id_sinWave);
 		wait_for_period(task_sepcs.id_sinWave);
 		pthread_barrier_wait(&rsrc_barr);
 
 
-	}while(true);
+	};
 	pthread_exit(NULL);
 }
 
@@ -245,7 +247,7 @@ TASK triangle_src(TASK arg) {
 	
 	set_activation(task_sepcs.id_triWave);
    
-	do {
+	while(!TASK_END) {
 		pthread_mutex_lock(&Trsrc_mutx);
 		w = TWOPI * signal_params.freq_tri;
 		t_triangle+= dt * SAMPLES_PER_BUFFER;
@@ -263,7 +265,7 @@ TASK triangle_src(TASK arg) {
 		wait_for_period(task_sepcs.id_triWave);
 		pthread_barrier_wait(&rsrc_barr);
 
-	}while(true);
+	}
 	pthread_exit(NULL);
 }
 
@@ -279,7 +281,7 @@ TASK square_src(TASK arg) {
     task_sepcs.prio_squWave=get_task_period(arg);
     set_activation(task_sepcs.id_squWave);    
 
-	do {
+	while(!TASK_END) {
 		pthread_mutex_lock(&Rrsrc_mutx);
 
 		w = TWOPI * signal_params.freq_square;
@@ -291,12 +293,13 @@ TASK square_src(TASK arg) {
             x = sin(w * ti);
             signal_params.squareWave_buf[i] = (x >= 0.0) ? (signal_params.square_switch*1.0) : (signal_params.square_switch* -1.0);
  		}
-		pthread_mutex_unlock(&Rrsrc_mutx);
+		pthread_mutex_unlock(&Rrsrc_mutx);	
+        task_sepcs.dlmiss_squWave = deadline_miss(task_sepcs.id_squWave);        
 
 		wait_for_period(task_sepcs.id_squWave);
 		pthread_barrier_wait(&rsrc_barr);
 
-	}while(true);
+	}
 	pthread_exit(NULL);
 }
 
