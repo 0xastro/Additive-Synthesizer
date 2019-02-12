@@ -100,18 +100,8 @@ int deadline_miss(int i);
 
 
 /*Tasks Specific Variables*/
-/*//////////////////////Conditional Vars & Mutex Def////////////
- *  >Needs Improvements
- *//////////////////////////////////////////////////////////////
-
-pthread_mutex_t     rsrc_lock;  //resource lock
-pthread_cond_t      rsrc_rw;  //resource conditional read/write
-
-pthread_mutex_t     rsrc_lock2; //resource lock
-pthread_cond_t      rsrc_rw2; //resource conditional read/write
-
-pthread_mutex_t     rsrc_lock3; //resource lock
-pthread_cond_t      rsrc_rw3; //resource conditional read/write
-
+pthread_mutex_t     Rrsrc_mutx, Trsrc_mutx, Srsrc_mutx, UIrsrc_mutx;  //resource lock
+pthread_mutexattr_t rsrc_attr;
+pthread_barrier_t rsrc_barr;
 
 #endif
