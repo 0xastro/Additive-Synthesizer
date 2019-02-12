@@ -31,11 +31,12 @@ TASK allegro_draw(void* arg) {
         
         Draw_Task_Bounded_Boxes();
         
-        DrawTask_Info();
         
-        pthread_mutex_lock(&mutex);
+        //DrawTask_Info();
+        pthread_mutex_lock(&UIrsrc_mutx);
         PlotWaveforms();
-        pthread_mutex_unlock(&mutex);
+        pthread_mutex_unlock(&UIrsrc_mutx);
+        
         
         Draw_Instructions();
         al_flip_display();    
