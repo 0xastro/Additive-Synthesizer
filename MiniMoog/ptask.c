@@ -14,16 +14,14 @@
 
 
 /*//////////////////////task_create//////////////////////
- *
  * This function create a thread  using pthread_create
  * and setting/initiating the SCHED_RR schedule
  * Inputs:
- *	@task 			task routine
- *	@idx 			task index
- *  @period			task period
- *	@reldeadline 	task relative deadline
+ *	@task			task routine
+ *	@idx			task index
+ *	@period			task period
+ *	@reldeadline		task relative deadline
  *	@prio			task priority
- *
  * Returns @err, where @err :=0 when the pthread_create
  * call completes successfully.
  *//////////////////////////////////////////////////////
@@ -33,14 +31,12 @@ int task_create(void* (*task) (void*), int idx, int period, int reldeadline, int
 	//pthread_attr_t myatt;
 	struct sched_param mypar;
 	int err;
-
-
 	/*Assing task parameters to the structure tp of each task*/
-	tp[idx].arg			=idx; 
-	tp[idx].period		=period;
-	tp[idx].deadline	=reldeadline;
-	tp[idx].priority	=prio;
-	tp[idx].dmiss		=0; 
+	tp[idx].arg		= idx; 
+	tp[idx].period		= period;
+	tp[idx].deadline	= reldeadline;
+	tp[idx].priority	= prio;
+	tp[idx].dmiss		= 0; 
 
 	pthread_attr_init(&myatt[idx]);
 	pthread_attr_setinheritsched(&myatt[idx], PTHREAD_EXPLICIT_SCHED);
@@ -50,7 +46,7 @@ int task_create(void* (*task) (void*), int idx, int period, int reldeadline, int
 	mypar.sched_priority = tp[idx].priority;
 	pthread_attr_setschedparam(&myatt[idx], &mypar);
 
-	err=pthread_create(&tid[idx], &myatt[idx], task, (void*)(&tp[idx])) ;
+	err = pthread_create(&tid[idx], &myatt[idx], task, (void*)(&tp[idx])) ;
 
 	return err;
 }
@@ -64,8 +60,8 @@ int task_create(void* (*task) (void*), int idx, int period, int reldeadline, int
 
 void task_terminate() {	
 	int i;
-	for ( i = 0; i < NUM_TASKS; i++) {
-		pthread_join(tid[i],NULL);
+	for (i=0; i<NUM_TASKS; i++) {
+		pthread_join(tid[i], NULL);
 	}
 }
 
@@ -91,7 +87,7 @@ int get_task_index(void* arg) {
 int get_task_period(void* arg) {
 	struct task_par *tp;
 	tp = (struct task_par *)arg;
-
+	
 	return tp->period;
 }
 
@@ -142,10 +138,12 @@ int deadline_miss(int i) {
     tspec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     
-    if (time_cmp(now, tp[i].dl) > 0)
+    if (time_cmp(now, tp[i].dl) > 0){
         return 1;
-    else
+    }
+    else{
         return 0;
+    }
 }
 
 
