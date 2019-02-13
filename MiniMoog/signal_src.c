@@ -24,17 +24,18 @@ double  dt = 1.0 / 44100;
  * The output is the filter coefficient which is stored in
  * h array 
  *////////////////////////////////////////////////////////////
+/*---------------------------------------------------------------------------------------------------------*/
 
 void FIR_BPF(float fc_L, float fc_H, float FS, int N) {
 	
-	float   hi,
-			hl;
-	int icount;
+	float	hi, hl;
+	int		icount;
 	
 	for (icount = -(N-1)/2; icount <= (N-1)/2; icount++)
 	{
-		if(icount==0)
+		if (icount==0) {
 			BPF.h[icount+(N-1)/2]=2*(fc_H-fc_L)/FS;
+		}
 		else {
 			hi= (sin(TWOPI*(fc_H/FS)*icount)/(PI*icount));
 			hl= (sin(TWOPI*(fc_L/FS)*icount)/(PI*icount));            
@@ -42,12 +43,13 @@ void FIR_BPF(float fc_L, float fc_H, float FS, int N) {
 		}
 	}
 
-	if(LOG_ENABLE) {
-	for(icount=0; icount <SAMPLES_PER_BUFFER; icount++)
-		log_printf("h[%i]=%e\n",icount,BPF.h[icount]);
+	if (LOG_ENABLE) {
+		for (icount=0; icount <SAMPLES_PER_BUFFER; icount++) {
+			log_printf("h[%i]=%e\n",icount,BPF.h[icount]);
+		}
 	}
 }
-
+/*---------------------------------------------------------------------------------------------------------*/
 
 /*//////////////////////additive_synths///////////////////////
  *
@@ -58,11 +60,9 @@ void FIR_BPF(float fc_L, float fc_H, float FS, int N) {
  *////////////////////////////////////////////////////////////
 
 void additive_synths(float *buf) {
-	
 	int i;
-
 	for (i = 0; i < SAMPLES_PER_BUFFER; ++i){
-		buf[i] = waveform1[i]+waveform2[i]+waveform3[i]; 
+		buf[i] = signal_params.gain * (2*waveform1[i]+2*waveform2[i]+waveform3[i]); 
 	}
 	
 	/* @signal_params.sum[i] is filled and used only for Drawing, 
@@ -72,12 +72,13 @@ void additive_synths(float *buf) {
 	 */
 
 	pthread_mutex_lock(&UIrsrc_mutx);
-	for (i = 0; i < SAMPLES_PER_BUFFER; ++i){
+	for (i = 0; i < SAMPLES_PER_BUFFER; ++i) {
 		signal_params.sum[i] = waveform1[i]+waveform2[i];
 	} 
 	pthread_mutex_unlock(&UIrsrc_mutx);
 
 }
+/*---------------------------------------------------------------------------------------------------------*/
 
 /*//////////////////////audio_thread///////////////////////
  * TASK audio_thread:  
@@ -93,66 +94,49 @@ void additive_synths(float *buf) {
  *      played  
  *////////////////////////////////////////////////////////////
 
-TASK audio_thread(TASK arg){
-
-	task_sepcs.id_audio=get_task_index(arg);
-	task_sepcs.prio_audio=get_task_period(arg);
-	
-	int Audio_FS=44100;
-	int fragmentCount=2;
-
+TASK audio_thread(TASK arg) {
 	ALLEGRO_EVENT_QUEUE     *queue;
 	ALLEGRO_AUDIO_STREAM    *Output_Stream;
 	ALLEGRO_MIXER           *mixer; 
-
-	mixer			= al_get_default_mixer();
-	Output_Stream	= al_create_audio_stream(fragmentCount, SAMPLES_PER_BUFFER, Audio_FS, ALLEGRO_AUDIO_DEPTH_FLOAT32, ALLEGRO_CHANNEL_CONF_1); 
-	queue			= al_create_event_queue();
+	
+	int Audio_FS 		= 44100;
+	int fragmentCount	= 2;
+	mixer				= al_get_default_mixer();
+	Output_Stream		= al_create_audio_stream(fragmentCount, SAMPLES_PER_BUFFER, Audio_FS, ALLEGRO_AUDIO_DEPTH_FLOAT32, ALLEGRO_CHANNEL_CONF_1); 
+	queue				= al_create_event_queue();
 
 	al_attach_audio_stream_to_mixer(Output_Stream, mixer);
 	al_register_event_source(queue, al_get_audio_stream_event_source(Output_Stream));
 
-	set_activation(task_sepcs.id_audio); //this is wrong!!!
+	task_sepcs.id_audio=get_task_index(arg);
+	task_sepcs.prio_audio=get_task_period(arg);
+	set_activation(task_sepcs.id_audio);
 	
-	do{
+	while (!TASK_END) {
 
 		ALLEGRO_EVENT event;
 		al_wait_for_event(queue, &event);
 		
-		/*Enter the critical Section, reading @sineWave_buf*/
 		pthread_mutex_lock(&Srsrc_mutx);       		
-		/*Do the work.....
-		*Perform Reading from the shared buffer*/ 		
-		memmove(waveform1, signal_params.sineWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
-		//Checking if both arrays are identical, If not recopy again
-		while (memcmp(waveform1, signal_params.sineWave_buf, SAMPLES_PER_BUFFER * sizeof(float)) != 0){
+		while (memcmp(waveform1, signal_params.sineWave_buf, SAMPLES_PER_BUFFER * sizeof(float)) != 0) {
 			memmove(waveform1, signal_params.sineWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
 		}	
-		/*End the critical Section*/
-		pthread_mutex_unlock(&Srsrc_mutx);
-		
+		pthread_mutex_unlock(&Srsrc_mutx);	
 		/*---------------------------------------------------------------------------------------------------------*/
-
 		pthread_mutex_lock(&Trsrc_mutx);
-		memmove(waveform2, signal_params.triangleWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
-		//Checking if arrays are identical, If not recopy again
-		while (memcmp(waveform1, signal_params.sineWave_buf, SAMPLES_PER_BUFFER * sizeof(float)) != 0){
+		while (memcmp(waveform2, signal_params.triangleWave_buf, SAMPLES_PER_BUFFER * sizeof(float)) != 0) {
 			memmove(waveform2, signal_params.triangleWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
 		}
 		pthread_mutex_unlock(&Trsrc_mutx);			
 		/*---------------------------------------------------------------------------------------------------------*/
-		
 		pthread_mutex_lock(&Rrsrc_mutx);
-		memmove(waveform3, signal_params.squareWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
-		//Checking if arrays are identical, If not recopy again
-		while (memcmp(waveform3, signal_params.squareWave_buf, SAMPLES_PER_BUFFER * sizeof(float)) != 0){
+		while (memcmp(waveform3, signal_params.squareWave_buf, SAMPLES_PER_BUFFER * sizeof(float)) != 0) {
 			memmove(waveform3, signal_params.squareWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
 		}
 		pthread_mutex_unlock(&Rrsrc_mutx);
 		/*---------------------------------------------------------------------------------------------------------*/
 		
 		if (event.type == ALLEGRO_EVENT_AUDIO_STREAM_FRAGMENT ) {
-
 			additive_buf = al_get_audio_stream_fragment(Output_Stream);                
 			/* where @al_set_audio_stream_fragment needs to be called iff 
 			 * after each successful call of @al_get_audio_stream_fragment
@@ -160,32 +144,25 @@ TASK audio_thread(TASK arg){
 			if (!additive_buf) {
 				continue;
 			}
-			
-			additive_synths((float*)additive_buf);
-				
-			if(!al_set_audio_stream_fragment(Output_Stream, additive_buf)){
+			additive_synths((float*)additive_buf);			
+			if (!al_set_audio_stream_fragment(Output_Stream, additive_buf)) {
 				log_printf("Error setting stream fragment.\n");
 			}
-
 		}
-        task_sepcs.dlmiss_audio = deadline_miss(task_sepcs.id_audio);        
-
+		
 		wait_for_period(task_sepcs.id_audio);
-		pthread_barrier_wait(&rsrc_barr);
-	
-	}while(true);
-
-
-
-	/*Killing*/
+		if (BARRIER_ENABLE) {
+			pthread_barrier_wait(&rsrc_barr);
+		}	
+	}
+	/*Cleaning*/
 	al_drain_audio_stream(Output_Stream);
 	al_destroy_event_queue(queue);  
 	al_destroy_mixer(mixer);
 	pthread_exit(NULL);
 
 }
-
-
+/*---------------------------------------------------------------------------------------------------------*/
 
 /*//////////////////////sine_src///////////////////////
  * TASK sine_src:  
@@ -204,34 +181,31 @@ TASK audio_thread(TASK arg){
 	task_sepcs.prio_sinWave=get_task_period(arg);
 	set_activation(task_sepcs.id_sinWave);
 	
-	while(!TASK_END) {
-
+	while (!TASK_END) {
+		pthread_mutex_lock(&Srsrc_mutx);             
 		w = TWOPI * signal_params.freq_sin;
 		t_sine+= dt * SAMPLES_PER_BUFFER;
-
 		//Enter the critical Section
-		pthread_mutex_lock(&Srsrc_mutx);             
 		/*Do the work.....
 		 *Perform Writing to the buffer*/
 		for (i = 0; i < SAMPLES_PER_BUFFER; ++i) { 
 			ti = t_sine + i * dt;
-			signal_params.sineWave_buf[i] =sin(w * ti);
+			signal_params.sineWave_buf[i] =signal_params.sine_switch*sin(w * ti);
 		}
 		pthread_mutex_unlock(&Srsrc_mutx);
 		
 		//Exit the critical Section
         
-        task_sepcs.dlmiss_sinWave = deadline_miss(task_sepcs.id_sinWave);
+        //task_sepcs.dlmiss_sinWave = deadline_miss(task_sepcs.id_sinWave);
+		
 		wait_for_period(task_sepcs.id_sinWave);
-		pthread_barrier_wait(&rsrc_barr);
-
-
-	};
+		if (BARRIER_ENABLE){
+			pthread_barrier_wait(&rsrc_barr);
+		}
+	}
 	pthread_exit(NULL);
 }
-
-
-
+/*---------------------------------------------------------------------------------------------------------*/
 
 /*//////////////////////triangle_src///////////////////////
  * TASK triangle_src:  
@@ -240,14 +214,14 @@ TASK audio_thread(TASK arg){
  *      from the standard function [ sin() ]
  *//////////////////////////////////////////////////////
 TASK triangle_src(TASK arg) {
-	double w, tx, tu;
-	unsigned i;
-	task_sepcs.id_triWave=get_task_index(arg);
-	task_sepcs.prio_triWave=get_task_period(arg);
+	double	w, tx, tu;
+	int 	i;
 	
+	task_sepcs.id_triWave=get_task_index(arg);
+	task_sepcs.prio_triWave=get_task_period(arg);	
 	set_activation(task_sepcs.id_triWave);
    
-	while(!TASK_END) {
+	while (!TASK_END) {	
 		pthread_mutex_lock(&Trsrc_mutx);
 		w = TWOPI * signal_params.freq_tri;
 		t_triangle+= dt * SAMPLES_PER_BUFFER;
@@ -255,35 +229,36 @@ TASK triangle_src(TASK arg) {
 		for (i = 0; i < SAMPLES_PER_BUFFER; i++) {
 			tx = w * (t_triangle + i * dt) + PI/2.0;
 			tu = fmod(tx/PI, 2.0);
-			if (tu <= 1.0)
+			if (tu <= 1.0){
 				signal_params.triangleWave_buf[i] =  signal_params.tri_switch*(1.0 - 2.0 * tu);
-			else
+			}
+			else {
 				signal_params.triangleWave_buf[i] =  signal_params.tri_switch*(-1.0 + 2.0 * (tu - 1.0));
+			}
 		}
 		pthread_mutex_unlock(&Trsrc_mutx);
 
 		wait_for_period(task_sepcs.id_triWave);
-		pthread_barrier_wait(&rsrc_barr);
-
+		if (BARRIER_ENABLE){
+			pthread_barrier_wait(&rsrc_barr);
+		}
 	}
 	pthread_exit(NULL);
 }
 
-
-
-
+/*---------------------------------------------------------------------------------------------------------*/
 TASK square_src(TASK arg) {
     
-    double w, x, ti;
-    unsigned i;
+    double		w, x, ti;
+    int 		i;
     
     task_sepcs.id_squWave=get_task_index(arg);
     task_sepcs.prio_squWave=get_task_period(arg);
     set_activation(task_sepcs.id_squWave);    
 
-	while(!TASK_END) {
-		pthread_mutex_lock(&Rrsrc_mutx);
+	while (!TASK_END) {
 
+		pthread_mutex_lock(&Rrsrc_mutx);
 		w = TWOPI * signal_params.freq_square;
         t_square+= dt * SAMPLES_PER_BUFFER;  
 
@@ -294,11 +269,12 @@ TASK square_src(TASK arg) {
             signal_params.squareWave_buf[i] = (x >= 0.0) ? (signal_params.square_switch*1.0) : (signal_params.square_switch* -1.0);
  		}
 		pthread_mutex_unlock(&Rrsrc_mutx);	
-        task_sepcs.dlmiss_squWave = deadline_miss(task_sepcs.id_squWave);        
+        //task_sepcs.dlmiss_squWave = deadline_miss(task_sepcs.id_squWave);        
 
 		wait_for_period(task_sepcs.id_squWave);
-		pthread_barrier_wait(&rsrc_barr);
-
+		if (BARRIER_ENABLE){
+			pthread_barrier_wait(&rsrc_barr);
+		}
 	}
 	pthread_exit(NULL);
 }
