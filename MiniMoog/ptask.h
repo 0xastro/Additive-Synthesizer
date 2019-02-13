@@ -14,12 +14,12 @@
 /*-------------------------------------------------------------------*/
 struct task_par{
 	int 	arg;            // task argument 
-	int 	period;         // in milliseconds
-	int	 	deadline;       // relative deadline in milliseconds
-	int 	priority;       // in [0,99], in POSIX (0,39)
-	int 	dmiss;          // no. of misses
-	struct 	timespec at; // next activ. time
-	struct 	timespec dl; // abs. deadline
+	int 	period;			// in milliseconds
+	int	 	deadline;		// relative deadline in milliseconds
+	int 	priority;		// in [0,99], in POSIX (0,39)
+	int 	dmiss;			// no. of misses
+	struct 	timespec at;	// next activ. time
+	struct 	timespec dl;	// abs. deadline
 };
 
 //Create a task parametetres structure for all tasks
@@ -64,14 +64,14 @@ int deadline_miss(int i);
     *       [audio, sine_src, tri_src, squar_src]
  	*/
 
-pthread_mutex_t			Rrsrc_mutx, 
-						Trsrc_mutx,
-						Srsrc_mutx, 
-						UIrsrc_mutx;
+pthread_mutex_t		Rrsrc_mutx, 
+					Trsrc_mutx,
+					Srsrc_mutx, 
+					UIrsrc_mutx;
 
-pthread_mutexattr_t		rsrc_attr;
+pthread_mutexattr_t	rsrc_attr;
 
-pthread_barrier_t		rsrc_barr;
+pthread_barrier_t	rsrc_barr;
 
 
 #endif
