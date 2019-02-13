@@ -3,7 +3,7 @@
 
 
 #include "shared.h"
-#include "signal_src.h"
+#include "signal_src.h" //to access waves_buffer structure. Therfore, to render the waveforms
 
 
 #define XDISP			800
@@ -24,14 +24,15 @@
 
 
 ALLEGRO_FONT*		font;
+ALLEGRO_FONT*		fonts;
 ALLEGRO_DISPLAY*	display;
 
-ALLEGRO_COLOR		c0; 
-ALLEGRO_COLOR		c1;  
-ALLEGRO_COLOR		c2;  
-ALLEGRO_COLOR		c3;
+ALLEGRO_COLOR 		c0; 
+ALLEGRO_COLOR 		c1;  
+ALLEGRO_COLOR 		c2;  
+ALLEGRO_COLOR 		c3;
 
-extern struct waves_buffer signal_params;
+extern struct 		waves_buffer signal_params;
 
 
 void DrawTask_Info(void);
@@ -40,7 +41,6 @@ void PlotWaveforms(void);
 void Draw_Instructions(void);
  
 TASK allegro_draw(void* arg);
-
 
 
 #endif
