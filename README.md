@@ -12,3 +12,13 @@ This project is a real-time emulation of an additive synthesizer (the classical 
 2. TASK Keyboard: Actively poll the keyboard to trigger and control the frequency notes of each wave
 3. TASK Wave-forms: each waveform has an independent periodic tasks.
 4. TASK Audio handles the Integration of the wave-forms and passing the generated buffer through the audio card driver.
+
+
+#### BPF: Is a part of the wave generator task and number of coefficients have been generated with respect to the following rule:
+
+N (Tabs)= (Ad)/20*BT
+
+where:
+* Ad: Desired Attenuation in dB
+* Bt: (FC_High-FC_Low)/FS
+* FS: 44100 Hz
