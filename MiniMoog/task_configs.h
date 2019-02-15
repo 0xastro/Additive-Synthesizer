@@ -25,7 +25,7 @@
 /*AudioTask PARAMETERS*/
 #define AUDIO_ID        3
 #define AUDIO_PER       20  //200 no DLM
-#define AUDIO_DL        200  
+#define AUDIO_DL        20  
 #define AUDIO_PRIO      5  
 
 /*GraphicsTask PARAMETERS*/
