@@ -4,13 +4,13 @@
 #include "task_configs.h"
 
 
-float           waveform1[SAMPLES_PER_BUFFER],
-                waveform2[SAMPLES_PER_BUFFER],
-                waveform3[SAMPLES_PER_BUFFER];
+float	waveform1[SAMPLES_PER_BUFFER],
+		waveform2[SAMPLES_PER_BUFFER],
+		waveform3[SAMPLES_PER_BUFFER];
 
 /*sampling time: 1/48 msec, 44100 is the default sampling rate of Mixer*/
-int 	Audio_FS = 48000;
-double  dt 		 = 1.0 / 48000;
+int 	Audio_FS= 48000;
+double  dt	= 1.0 / 48000;
 
 /*-----------------------------------------------------------
  *----------------------------------------------------FIR_BPF
@@ -23,25 +23,16 @@ double  dt 		 = 1.0 / 48000;
  * @N:      Number of Tabs
  * The output is the filter coefficient which is stored in
  * h array 
-
- NewFilter Design, however the old one was better but meaningless
-  Cn= (sin(nPIv2)-sin(nPIv1))/nPI, Cn is the general T.F
-  C0=1-v2-v1;
-  Hint v is the ratio between the cufoff freq to the Nyquist freq 
-  (Fc_H)/Fs
-  FS >= 2Fc_H
- 
  --------------------------------------------------------*/
-void FIR_BPF(float fc_L, float fc_H, float FS, int N) {
-	
+void FIR_BPF(float fc_L, float fc_H, float FS, int N) {	
 	//float   hi, hl;
-	int 	coef, coef2, /*odd,*/ icount;
+	int	coef, coef2, icount;
 
-	coef =N;	
+	coef	=N;	
 	/*Normalize the cutoff frequency to values between 0 and 1*/
-	fc_L = (fc_L)/(Audio_FS/2);
-	fc_H = (fc_H)/(Audio_FS/2);
-	FS 	 = TWOPI*FS;
+	fc_L	= (fc_L)/(Audio_FS/2);
+	fc_H	= (fc_H)/(Audio_FS/2);
+	FS		= TWOPI*FS;
 
 	/*Determine whether there's an even or odd number of coeffecient*/
 	coef2	= coef>>1;
@@ -51,7 +42,6 @@ void FIR_BPF(float fc_L, float fc_H, float FS, int N) {
 	for (icount=1; icount<coef2; icount++) {  
 		BPF.h[coef2+icount] = BPF.h[coef2-icount] =(sin(fc_H*icount*PI)-sin(fc_L*icount*PI))/(icount*PI);
 	}
-
 	if(LOG_ENABLE) {
 	for(icount=0; icount <SAMPLES_PER_BUFFER; icount++)
 		printf("h[%i]=%e\n",icount,BPF.h[icount]);
@@ -68,30 +58,24 @@ void FIR_BPF(float fc_L, float fc_H, float FS, int N) {
  --------------------------------------------------------*/
 void additive_synths(float *buf) {
 	
-	int i;
-	
+	int i;	
 	for (i = 0; i < SAMPLES_PER_BUFFER; ++i){
 		buf[i] = signal_params.gain* (2*waveform1[i]+2*waveform2[i]+waveform3[i]); 
 	}
-	
 	/* @signal_params.sum[i] is filled and used only for Drawing, 
 	 * where our square wave is an ideal one without any transition 
 	 * (falling/rising edges) so drawing it doesn't make any sense
 	 * so we only draw sin+tri on the screen
 	 */
-
 	pthread_mutex_lock(&UIrsrc_mutx);
 	for (i = 0; i < SAMPLES_PER_BUFFER; ++i){
-
 		signal_params.sum[i] = waveform1[i]+waveform2[i];
 	} 
 	pthread_mutex_unlock(&UIrsrc_mutx);
-
 }
 /*-----------------------------------------------------------
  *----------------------------------------------audio_thread
  *-----------------------------------------------------------
-
  * TASK audio_thread:  
  *  >Setup Allegro Audio Setting
  *  >Perpare the output stream to be executed by calling 
@@ -111,8 +95,8 @@ TASK audio_thread(TASK arg) {
 	ALLEGRO_EVENT_QUEUE     *queue;
 	ALLEGRO_AUDIO_STREAM    *Output_Stream;
 	ALLEGRO_MIXER           *mixer; 
-	ALLEGRO_VOICE			*voice;
-	queue 					= al_create_event_queue();
+	ALLEGRO_VOICE		*voice;
+	queue 			= al_create_event_queue();
 	Output_Stream			= al_create_audio_stream(fragmentCount, SAMPLES_PER_BUFFER, Audio_FS, ALLEGRO_AUDIO_DEPTH_FLOAT32, ALLEGRO_CHANNEL_CONF_1); 
 	mixer 					= al_create_mixer(Audio_FS, ALLEGRO_AUDIO_DEPTH_FLOAT32, ALLEGRO_CHANNEL_CONF_1);
 	voice 					= al_create_voice(Audio_FS, ALLEGRO_AUDIO_DEPTH_INT16, ALLEGRO_CHANNEL_CONF_1);
