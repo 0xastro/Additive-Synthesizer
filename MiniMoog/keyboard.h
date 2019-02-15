@@ -1,5 +1,5 @@
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef KEYBOARD
+#define KEYBOARD
 
 //#include "shared.h"
 #include "signal_src.h"
@@ -25,6 +25,8 @@ void sin_notes(void);
 void square_notes(void);
 void triangle_notes(void);
 void WavesON_OFF(void);
+void BPFandGainControl(void);
+
 
 TASK keyboard_thread(void* key);
 
