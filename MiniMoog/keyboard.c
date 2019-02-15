@@ -3,15 +3,23 @@
 
 extern struct waves_buffer signal_params;
 
+/*-----------------------------------------------------------
+ *--------------------------------------------keyboard_thread
+ *-----------------------------------------------------------
+ * TASK keyboard_thread:  
+ *		is a periodic task, preforms only checking for user
+ *		pressing commands/keys to either
+ *		[Trigger the waves ON or OFF]
+ *		[Change each wave note/frequenct]
+ *		[Enable the filter]
+ *		[Control the gain]
+ *
+ --------------------------------------------------------*/
 
 TASK keyboard_thread(void* arg) {
 
-	task_sepcs.id_keyboard=get_task_index(arg);
-	task_sepcs.prio_keyboard=get_task_period(arg);
-
 	ALLEGRO_EVENT           event;
 	ALLEGRO_EVENT_QUEUE*    queue;
-
 	queue = al_create_event_queue();
 
 	/*Init Switched- All waves are in silent buffer @ the beginning*/
@@ -21,7 +29,9 @@ TASK keyboard_thread(void* arg) {
 
 	/*Used with log_key function only for debugging*/
 	al_register_event_source(queue, al_get_keyboard_event_source());
-
+	
+	task_sepcs.id_keyboard=get_task_index(arg);
+	task_sepcs.prio_keyboard=get_task_priority(arg);
 	set_activation(task_sepcs.id_keyboard);
 	while(!TASK_END){
 
@@ -31,15 +41,15 @@ TASK keyboard_thread(void* arg) {
 		}
 
 		// Actively poll the keyboard to trigger the waves notes		
-		/*This is bad design, but shall I put all the condtions in the same function?!*/
 		sin_notes();
 		square_notes();
 		triangle_notes();
 		WavesON_OFF();
-		gainControl();
+		BPFandGainControl();
 
 		if (al_key_down(&keyState, ALLEGRO_KEY_ESCAPE)) {
-				TASK_END=1; //Core Dump when ESCAPE(Serious Issue)
+				TASK_END=1; 
+				log_printf("Exit the Program ........\n");
 				break;
 		}
 		//task_sepcs.dlmiss_keyboard=deadline_miss(task_sepcs.id_keyboard);
@@ -67,25 +77,25 @@ void sin_notes(void) {
 
 	al_get_keyboard_state(&keyState);
 
-	if (al_key_down(&keyState, ALLEGRO_KEY_A)) {
+	if (al_key_down(&keyState, ALLEGRO_KEY_A)){
 		signal_params.freq_sin=NOTE_A;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_S)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_S)){
 		signal_params.freq_sin=NOTE_B;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_D)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_D)){
 		signal_params.freq_sin=NOTE_C;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_F)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_F)){
 		signal_params.freq_sin=NOTE_D;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_G)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_G)){
 		signal_params.freq_sin=NOTE_E;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_H)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_H)){
 		signal_params.freq_sin=NOTE_F;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_J)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_J)){
 		signal_params.freq_sin=NOTE_G;
 	}
 
@@ -97,25 +107,25 @@ void square_notes(void) {
 
 	al_get_keyboard_state(&keyState);
 
-	if (al_key_down(&keyState, ALLEGRO_KEY_Z)) {
+	if (al_key_down(&keyState, ALLEGRO_KEY_Z)){
 		signal_params.freq_square=NOTE_A;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_X)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_X)){
 		signal_params.freq_square=NOTE_B;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_C)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_C)){
 		signal_params.freq_square=NOTE_C;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_V)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_V)){
 		signal_params.freq_square=NOTE_D;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_B)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_B)){
 		signal_params.freq_square=NOTE_E;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_N)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_N)){
 		signal_params.freq_square=NOTE_F;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_M)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_M)){
 		signal_params.freq_square=NOTE_G;
 	}
 
@@ -126,25 +136,25 @@ void triangle_notes(void) {
 
 	al_get_keyboard_state(&keyState);
 
-	if (al_key_down(&keyState, ALLEGRO_KEY_Q)) {
+	if (al_key_down(&keyState, ALLEGRO_KEY_Q)){
 		signal_params.freq_tri=NOTE_A;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_W)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_W)){
 		signal_params.freq_tri=NOTE_B;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_E)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_E)){
 		signal_params.freq_tri=NOTE_C;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_R)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_R)){
 		signal_params.freq_tri=NOTE_D;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_T)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_T)){
 		signal_params.freq_tri=NOTE_E;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_Y)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_Y)){
 		signal_params.freq_tri=NOTE_F;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_U)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_U)){
 		signal_params.freq_tri=NOTE_G;
 	}
 
@@ -156,46 +166,54 @@ void WavesON_OFF(void) {
 
 	al_get_keyboard_state(&keyState);
 
-	if (al_key_down(&keyState, ALLEGRO_KEY_1)) {
+	if (al_key_down(&keyState, ALLEGRO_KEY_1)){
 		signal_params.sine_switch=1;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_4)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_4)){
 		signal_params.sine_switch=0;
 	}
 	
-	else if (al_key_down(&keyState, ALLEGRO_KEY_2)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_2)){
 		signal_params.square_switch=1;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_5)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_5)){
 		signal_params.square_switch=0;
 	}
 	
-	else if (al_key_down(&keyState, ALLEGRO_KEY_3)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_3)){
 		signal_params.tri_switch=1;
 	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_6)) {
+	else if (al_key_down(&keyState, ALLEGRO_KEY_6)){
 		signal_params.tri_switch=0;
 	}  
 
 }
 /*---------------------------------------------------------------------------------------------------------*/
 
-void gainControl(void) {
-
+void BPFandGainControl(void) {
 	al_get_keyboard_state(&keyState);
 	
-	if (al_key_down(&keyState, ALLEGRO_KEY_EQUALS) && signal_params.gain == 0) {
-		signal_params.gain=1;
-	}
+
 	
-	else if (al_key_down(&keyState, ALLEGRO_KEY_EQUALS) && signal_params.gain == 1) {
-		signal_params.gain=2;
+	if (al_key_down(&keyState, ALLEGRO_KEY_EQUALS)){
+		if (signal_params.gain < 5 && signal_params.gain >=0) {
+			signal_params.gain+=0.1;	
+		}
+	}
+	if (al_key_down(&keyState, ALLEGRO_KEY_MINUS)){
+		if (signal_params.gain < 5 && signal_params.gain >=0) {
+			signal_params.gain-=0.1;	
+		}	
 	}
 
-	else if (al_key_down(&keyState, ALLEGRO_KEY_MINUS) && signal_params.gain == 2) {
-		signal_params.gain=1;
-	}
-	else if (al_key_down(&keyState, ALLEGRO_KEY_MINUS) && signal_params.gain == 1) {
-		signal_params.gain=0;
+	if (al_key_down(&keyState, ALLEGRO_KEY_SPACE)){
+		if (BPF_ENABLED == 0){
+			printf("DEBUG\t\tFIR-BPF:Enabled\n");
+			BPF_ENABLED=1;
+		}
+		else{
+			printf("DEBUG\t\tFIR-BPF:Disabled\n");
+			BPF_ENABLED=0;
+		}
 	}    
 }
