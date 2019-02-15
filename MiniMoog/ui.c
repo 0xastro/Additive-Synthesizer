@@ -3,20 +3,21 @@
 
  
 /*---------------------------------------------------------------------------------------------------------*/
-
 TASK allegro_draw(void* arg) {
 
 	task_sepcs.id_display=get_task_index(arg);
-	task_sepcs.prio_display=get_task_period(arg);
+	task_sepcs.prio_display=get_task_priority(arg);
+
 
 	/*Defining Colors used in the program*/
-	c0		= al_map_rgb(BLACK);
-	c1		= al_map_rgb(PINC);
-	c2		= al_map_rgb(WHITE);
-	c3		= al_map_rgb_f(ELECTRIC);
-	display	= al_create_display(XDISP, YDISP);  
-	font	= al_load_ttf_font("data/DejaVuSans.ttf", 12, 1);
-	fonts	= al_load_font("data/DejaVuSans.ttf", 10, 1);
+	c0 = al_map_rgb(BLACK);
+	c1 = al_map_rgb(PINC);
+	c2 = al_map_rgb(WHITE);
+	c3 = al_map_rgb_f(ELECTRIC);
+
+	display = al_create_display(XDISP, YDISP);  
+	font = al_load_ttf_font("data/DejaVuSans.ttf", 12, 1);
+	fonts = al_load_font("data/DejaVuSans.ttf", 10, 1);
 	
 	set_activation(task_sepcs.id_display);
 	
@@ -46,6 +47,7 @@ TASK allegro_draw(void* arg) {
 
 
 /*---------------------------------------------------------------------------------------------------------*/
+/*[ISSUE] I need to check it it's right to compute the deadline misses here*/
 
 void DrawTask_Info(void) {
 	
@@ -69,6 +71,7 @@ void DrawTask_Info(void) {
 	al_draw_textf(font, c2, 14+192*3, 60, 0, "Square   DLM:      %d",deadline_miss(task_sepcs.id_squWave));
 	al_draw_textf(font, c2, 14+192*3, 80, 0, "Triangle  DLM:      %d",deadline_miss(task_sepcs.id_triWave));
 
+	/*Display in Real-Time signals frequecies*/
 	al_draw_textf(font, c3, 10, 240, ALLEGRO_ALIGN_LEFT,"%3.2f Hz",signal_params.freq_sin);
 	al_draw_textf(font, c3, 10+297, 240, ALLEGRO_ALIGN_LEFT,"%3.2f Hz",signal_params.freq_tri);
 	al_draw_textf(font, c3, 10+297*2, 240, ALLEGRO_ALIGN_LEFT,"%3.2f Hz",signal_params.freq_square);
@@ -105,11 +108,14 @@ void Draw_Task_Bounded_Boxes(void) {
 
 void PlotWaveforms(void) {
 
+	// @al_put_blended_pixel bad function, cuases problems, delaying.
 	int i;
 	//Plot the SineWave
+ 
 	for (i = SINE_BLOCK_S; i < SINE_BLOCK_E; i++) {
-		al_put_blended_pixel(i, 200 + signal_params.sineWave_buf[i] * 20, c1);                
+		al_draw_pixel(i, 200 + signal_params.sineWave_buf[i] * 20, c1);                
 	}
+	
 	//Plot the TriangleWave    
 	for (i=TRI_BLOCK_S ; i < TRI_BLOCK_E; i++) {
 		al_draw_pixel(i, 200 + signal_params.triangleWave_buf[i] * 20, c1);                
@@ -122,7 +128,7 @@ void PlotWaveforms(void) {
 	for (i = SUM_BLOCK_S; i < SUM_BLOCK_E; i++){        
 		al_draw_pixel(i, 350 + signal_params.sum[i] * 50, c1);  
 	} 
-	//pthread_mutex_unlock(&rsrc_lock);
+
 }
 
 /*---------------------------------------------------------------------------------------------------------*/
@@ -143,7 +149,7 @@ void Draw_Instructions(void) {
 	al_draw_textf(font, c3, 350, 495, ALLEGRO_ALIGN_LEFT,"ON------------[1]     [2]        [3]------------------------------------------------------------------");
 	al_draw_textf(font, c3, 350, 510, ALLEGRO_ALIGN_LEFT,"0FF-----------[4]     [5]        [6]------------------------------------------------------------------");
 
-	al_draw_textf(font, c3, 350, 535, ALLEGRO_ALIGN_LEFT," --------------To toogle the filter press ENTER---------------------------------------------");
+	al_draw_textf(font, c3, 350, 535, ALLEGRO_ALIGN_LEFT," --------------To toogle the filter press SPACE---------------------------------------------");
 	al_draw_textf(font, c3, 350, 565, ALLEGRO_ALIGN_LEFT," --------------Volume up    (+)------------------------------------------------------------------------");
 	al_draw_textf(font, c3, 350, 580, ALLEGRO_ALIGN_LEFT," --------------Volume down ( - )---------------------------------------------------------------------");
 }
