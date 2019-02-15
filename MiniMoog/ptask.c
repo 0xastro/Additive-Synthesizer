@@ -11,7 +11,6 @@
 
 #include "ptask.h"
 
-
 /*------------------------------------------task_create
  *
  * This function create a thread  using pthread_create
@@ -31,8 +30,6 @@ int task_create(void* (*task) (void*), int idx, int period, int reldeadline, int
 	//pthread_attr_t myatt;
 	struct sched_param mypar;
 	int err;
-
-
 	/*Assing task parameters to the structure tp of each task*/
 	tp[idx].arg			= idx; 
 	tp[idx].period		= period;
