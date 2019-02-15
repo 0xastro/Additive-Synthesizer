@@ -22,3 +22,11 @@ where:
 * Ad: Desired Attenuation in dB
 * Bt: (FC_High-FC_Low)/FS
 * FS: 44100 Hz
+
+## To compile
+```
+mkdir build && cd build
+cmake ..
+make
+```
+P.S: Must be copied to Allegro5 repo: https://github.com/liballeg/allegro5 and compiled from there.
