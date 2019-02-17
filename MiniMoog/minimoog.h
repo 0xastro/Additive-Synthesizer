@@ -19,7 +19,7 @@
 #include "keyboard.h"
 #include "ui.h"
 #include "signal_src.h"
-
+#include "task_configs.h"
 
 /*-------------------------------------------------------------
  * GLOBAL MACROS
