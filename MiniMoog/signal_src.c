@@ -9,8 +9,8 @@ float	waveform1[SAMPLES_PER_BUFFER],
 		waveform3[SAMPLES_PER_BUFFER];
 
 /*sampling time: 1/48 msec, 44100 is the default sampling rate of Mixer*/
-int 	Audio_FS= 48000;
-double  dt	= 1.0 / 48000;
+int 	Audio_FS= STREAM_FREQUENCY;
+double  dt	=  STREAM_FREQUENCY;
 
 /*-----------------------------------------------------------
  *----------------------------------------------------FIR_BPF
@@ -95,7 +95,7 @@ TASK audio_thread(TASK arg) {
 	ALLEGRO_EVENT_QUEUE     *queue;
 	ALLEGRO_AUDIO_STREAM    *Output_Stream;
 	ALLEGRO_MIXER           *mixer; 
-	ALLEGRO_VOICE		*voice;
+	ALLEGRO_VOICE			*voice;
 	queue 			= al_create_event_queue();
 	Output_Stream			= al_create_audio_stream(fragmentCount, SAMPLES_PER_BUFFER, Audio_FS, ALLEGRO_AUDIO_DEPTH_FLOAT32, ALLEGRO_CHANNEL_CONF_1); 
 	mixer 					= al_create_mixer(Audio_FS, ALLEGRO_AUDIO_DEPTH_FLOAT32, ALLEGRO_CHANNEL_CONF_1);
@@ -130,6 +130,7 @@ TASK audio_thread(TASK arg) {
 		while (memcmp(waveform3, signal_params.squareWave_buf, SAMPLES_PER_BUFFER * sizeof(float)) != 0) {
 			memmove(waveform3, signal_params.squareWave_buf, SAMPLES_PER_BUFFER * sizeof(float));
 		}
+		task_sepcs.dlmiss_audio=deadline_miss(task_sepcs.id_audio);
 		pthread_mutex_unlock(&Rrsrc_mutx);
 		/*---------------------------------------------------------------------------------------------------------*/
 		
@@ -146,6 +147,7 @@ TASK audio_thread(TASK arg) {
 				log_printf("Error setting stream fragment.\n");
 			}
 		}
+		
 		
 		wait_for_period(task_sepcs.id_audio);
 		if(BARRIER_ENABLE){
@@ -196,6 +198,7 @@ TASK audio_thread(TASK arg) {
 		pthread_mutex_lock(&Srsrc_mutx);             
 		w = TWOPI * signal_params.freq_sin;
 		t_sine+= dt * SAMPLES_PER_BUFFER;
+        
         if(BPF_ENABLED) {
             float x[SAMPLES_PER_BUFFER];
             m=(BPF.N)-1;
@@ -207,12 +210,13 @@ TASK audio_thread(TASK arg) {
                 signal_params.sineWave_buf[i]=(signal_params.sineWave_buf[i]+x[i]*BPF.h[m-i]);
             }
         } 
-        else{
+        else {
         	for (i = 0; i < SAMPLES_PER_BUFFER; ++i) { 
 				ti = t_sine + i * dt;
 				signal_params.sineWave_buf[i] =signal_params.sine_switch*sin(w * ti);
 			}       	
         }
+        task_sepcs.dlmiss_sinWave=deadline_miss(task_sepcs.id_sinWave);
 		pthread_mutex_unlock(&Srsrc_mutx);	
     		
 		wait_for_period(task_sepcs.id_sinWave);
@@ -275,6 +279,7 @@ TASK triangle_src(TASK arg) {
 				}
 			}
 		}
+		task_sepcs.dlmiss_triWave=deadline_miss(task_sepcs.id_triWave);
 		pthread_mutex_unlock(&Trsrc_mutx);
 
 		wait_for_period(task_sepcs.id_triWave);
@@ -343,8 +348,8 @@ TASK square_src(TASK arg) {
 	            signal_params.squareWave_buf[i] = (x >= 0.0) ? (signal_params.square_switch*1.0) : (signal_params.square_switch* -1.0);
  			}
  		}
+		task_sepcs.dlmiss_squWave=deadline_miss(task_sepcs.id_squWave);
 		pthread_mutex_unlock(&Rrsrc_mutx);	
-        //task_sepcs.dlmiss_squWave = deadline_miss(task_sepcs.id_squWave);        
 
 		wait_for_period(task_sepcs.id_squWave);
 		if(BARRIER_ENABLE){
