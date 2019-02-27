@@ -15,14 +15,6 @@ The following periodic task sets have been managed using SCHED_RR scheduling pol
 
 <p align="center"> <img  src="img/demo.gif"> </p>
 
-#### BPF: Is a part of the wave generator task and number of coefficients have been generated with respect to the following rule:
-
-N (Tabs)= (Ad)/20*BT
-
-where:
-* Ad: Desired Attenuation in dB
-* Bt: (FC_High-FC_Low)/FS
-* FS: 44100 Hz
 
 ## To compile
 ```
