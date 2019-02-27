@@ -7,12 +7,13 @@ This project is a real-time emulation of an additive synthesizer (the classical 
 <p align="center"> <img  src="img/SystemDesign.png"> </p>
 
 ## Task Set
-
+The following periodic task sets have been managed using SCHED_RR scheduling policy
 1. TASK Graphics: allocated for rendering the graphics.
 2. TASK Keyboard: Actively poll the keyboard to trigger and control the frequency notes of each wave
 3. TASK Wave-forms: each waveform has an independent periodic tasks.
 4. TASK Audio handles the Integration of the wave-forms and passing the generated buffer through the audio card driver.
 
+<p align="center"> <img  src="img/demo.gif"> </p>
 
 #### BPF: Is a part of the wave generator task and number of coefficients have been generated with respect to the following rule:
 
