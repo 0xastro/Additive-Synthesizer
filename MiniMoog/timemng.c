@@ -7,7 +7,7 @@
  * destination variable pointed by @td
  *//////////////////////////////////////////////////////
 
-void time_copy(struct tspec *td, struct tspec ts) {
+void time_copy(tspec *td, tspec ts) {
 	
 	td->tv_sec	= ts.tv_sec;
 	td->tv_nsec	= ts.tv_nsec;
@@ -20,7 +20,7 @@ void time_copy(struct tspec *td, struct tspec ts) {
  *
  *//////////////////////////////////////////////////////
 
-void time_add_ms(struct tspec *t, int ms) {
+void time_add_ms(tspec *t, int ms) {
 	
 	t->tv_sec+=		(ms/1000);
 	t->tv_nsec+=	((ms%1000) * 1000000);
@@ -39,7 +39,7 @@ void time_add_ms(struct tspec *t, int ms) {
  *
  *//////////////////////////////////////////////////////
 
-int time_cmp(struct tspec t1, struct tspec t2) {
+int time_cmp(tspec t1, tspec t2) {
 	
 	if (t1.tv_sec > t2.tv_sec) {
 		return 1;
