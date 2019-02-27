@@ -45,9 +45,10 @@
 #define NBarrier        4
 
 
-int 	LOG_ENABLE;
-int 	TASK_END;
+#define LOG_ENABLE		0
+
 int 	BPF_ENABLED;
+int 	TASK_END;
 int 	BARRIER_ENABLE;
 
 #endif
